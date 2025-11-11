@@ -43,16 +43,22 @@ class UjianController extends Controller
         $request->validate([
             'type' => 'required|in:pilihan_ganda,esai',
             'pertanyaan' => 'required|string',
+            'gambar_soal' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', 
             'pilihan' => 'required_if:type,pilihan_ganda|array|min:4|nullable',
             'pilihan.*' => 'required_if:type,pilihan_ganda|string|nullable',
             'jawaban_benar' => 'required_if:type,pilihan_ganda|integer|min:0|max:3|nullable',
         ]);
 
+        $path = null;
+        if ($request->hasFile('gambar_soal')) {
+            $path = $request->file('gambar_soal')->store('soal_images', 'public');
+        }
 
-        DB::transaction(function () use ($request, $ujian) { 
+        DB::transaction(function () use ($request, $ujian, $path) { 
             
             $soal = $ujian->soals()->create([
                 'pertanyaan' => $request->pertanyaan,
+                'image_path' => $path, 
                 'type' => $request->type,
             ]);
 
@@ -70,7 +76,12 @@ class UjianController extends Controller
     
     public function destroy(Ujian $ujian)
     {
-        
+        foreach ($ujian->soals as $soal) {
+            if ($soal->image_path) {
+                // PERUBAHAN: Hapus dari disk 'public'
+                Storage::disk('public')->delete($soal->image_path);
+            }
+        }
         $ujian->delete();
         return redirect()->route('ujian.index')->with('status', 'Ujian berhasil dihapus.');
     }
@@ -83,9 +94,11 @@ class UjianController extends Controller
 
     public function updateSoal(Request $request, Soal $soal)
     {
+
         $request->validate([
             'type' => 'required|in:pilihan_ganda,esai',
             'pertanyaan' => 'required|string',
+            'gambar_soal' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', 
             'pilihan' => 'required_if:type,pilihan_ganda|array|min:4|nullable',
             'pilihan.*' => 'required_if:type,pilihan_ganda|string|nullable',
             'jawaban_benar' => 'required_if:type,pilihan_ganda|integer|min:0|max:3|nullable',
@@ -96,6 +109,17 @@ class UjianController extends Controller
             $soal->pertanyaan = $request->pertanyaan;
             $soal->type = $request->type;
 
+            // KEMBALIKAN LOGIKA GAMBAR
+            if ($request->has('hapus_gambar') && $soal->image_path) {
+                Storage::disk('public')->delete($soal->image_path);
+                $soal->image_path = null;
+            } 
+            if ($request->hasFile('gambar_soal')) {
+                if ($soal->image_path) {
+                    Storage::disk('public')->delete($soal->image_path);
+                }
+                $soal->image_path = $request->file('gambar_soal')->store('soal_images', 'public');
+            }
             
             $soal->save(); 
 
@@ -117,6 +141,11 @@ class UjianController extends Controller
     public function destroySoal(Soal $soal)
     {
         $ujian_id = $soal->ujian_id;
+
+       
+        if ($soal->image_path) {
+            Storage::disk('public')->delete($soal->image_path);
+        }
 
         $soal->delete();
 
