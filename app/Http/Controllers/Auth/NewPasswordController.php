@@ -15,16 +15,13 @@ use Illuminate\View\View;
 
 class NewPasswordController extends Controller
 {
-    /**
-     * Tampilkan halaman reset password.
-     */
+
     public function create(Request $request): View
     {
         return view('auth.reset-password', ['request' => $request]);
     }
 
     /**
-     * Proses permintaan reset password baru.
      *
      * @throws \Illuminate\Validation\ValidationException
      */
@@ -36,7 +33,6 @@ class NewPasswordController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // Mencoba mereset password dan menyimpan password baru ke database.
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function (User $user) use ($request) {
@@ -49,7 +45,6 @@ class NewPasswordController extends Controller
             }
         );
 
-        // Jika berhasil reset, arahkan ke login. Jika gagal, kembalikan error.
         return $status == Password::PASSWORD_RESET
                     ? redirect()->route('login')->with('status', __($status))
                     : back()->withInput($request->only('email'))

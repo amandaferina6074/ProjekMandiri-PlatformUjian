@@ -11,13 +11,14 @@ use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
 {
-    // Izinkan semua user mengirim request login
     public function authorize(): bool
     {
         return true;
     }
 
-    // Aturan validasi input login
+    /**
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
     public function rules(): array
     {
         return [
@@ -26,12 +27,14 @@ class LoginRequest extends FormRequest
         ];
     }
 
-    // Proses autentikasi user
+    /**
+
+     * @throws \Illuminate\Validation\ValidationException
+     */
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
 
-        // Coba login dengan email dan password
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
@@ -40,11 +43,12 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        // Hapus batas percobaan jika berhasil login
         RateLimiter::clear($this->throttleKey());
     }
 
-    // Cek apakah percobaan login sudah melebihi batas
+    /**
+     * @throws \Illuminate\Validation\ValidationException
+     */
     public function ensureIsNotRateLimited(): void
     {
         if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
@@ -63,7 +67,6 @@ class LoginRequest extends FormRequest
         ]);
     }
 
-    // Kunci unik berdasarkan email dan IP
     public function throttleKey(): string
     {
         return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());

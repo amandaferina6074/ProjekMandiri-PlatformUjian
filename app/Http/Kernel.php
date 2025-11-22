@@ -6,49 +6,54 @@ use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
 {
-    // Middleware global yang dijalankan di setiap request
+    /**
+     * @var array<int, class-string|string>
+     */
     protected $middleware = [
-        \App\Http\Middleware\TrustProxies::class, // Mengatur proxy server
-        \Illuminate\Http\Middleware\HandleCors::class, // Menangani CORS (Cross-Origin Resource Sharing)
-        \App\Http\Middleware\PreventRequestsDuringMaintenance::class, // Blokir akses saat mode maintenance
-        \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class, // Validasi ukuran POST request
-        \App\Http\Middleware\TrimStrings::class, // Hapus spasi berlebih dari input
-        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class, // Ubah string kosong jadi null
+        \App\Http\Middleware\TrustProxies::class,
+        \Illuminate\Http\Middleware\HandleCors::class,
+        \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
+        \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
+        \App\Http\Middleware\TrimStrings::class,
+        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
     ];
 
-    // Middleware group untuk web dan API
+    /**
+     * @var array<string, array<int, class-string|string>>
+     */
     protected $middlewareGroups = [
         'web' => [
-            \App\Http\Middleware\EncryptCookies::class, // Enkripsi cookie
-            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class, // Tambahkan cookie ke response
-            \Illuminate\Session\Middleware\StartSession::class, // Mulai session
-            \Illuminate\View\Middleware\ShareErrorsFromSession::class, // Bagikan error ke view
-            \App\Http\Middleware\VerifyCsrfToken::class, // Cegah serangan CSRF
-            \Illuminate\Routing\Middleware\SubstituteBindings::class, // Binding model otomatis di route
+            \App\Http\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \App\Http\Middleware\VerifyCsrfToken::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
 
         'api' => [
-            // Middleware untuk API request
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            'throttle:api', // Batasi jumlah request API
+            'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
     ];
 
-    // Alias middleware agar mudah dipanggil di route
+    /**
+     * @var array<string, class-string|string>
+     */
     protected $middlewareAliases = [
-        'auth' => \App\Http\Middleware\Authenticate::class, // Autentikasi user
-        'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class, // Autentikasi berbasis session
-        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class, // Atur header cache
-        'can' => \Illuminate\Auth\Middleware\Authorize::class, // Cek izin (authorization)
-        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class, // Redirect jika user sudah login
-        'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class, // Konfirmasi ulang password
-        'precognitive' => \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class, // Middleware untuk request precognitive
-        'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class, // Validasi tanda tangan URL
-        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class, // Batasi jumlah request
-        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class, // Pastikan email user sudah diverifikasi
-
-        // Middleware custom untuk pengecekan role user
+        'auth' => \App\Http\Middleware\Authenticate::class,
+        'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
+        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+        'can' => \Illuminate\Auth\Middleware\Authorize::class,
+        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
+        'precognitive' => \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class,
+        'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
+        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        
+        // Ini adalah baris yang kita butuhkan
         'role' => \App\Http\Middleware\CheckRole::class,
     ];
 }

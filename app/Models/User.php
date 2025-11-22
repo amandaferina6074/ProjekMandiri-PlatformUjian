@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 namespace App\Models;
 
@@ -10,26 +10,25 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    // Kolom yang boleh diisi massal
     protected $fillable = [
         'name',
         'email',
         'password',
-        'role', 
+        'role',
+        'otp_code',
+        'otp_expires_at',
+        'password_reset_requested_at',
     ];
 
-    // Kolom yang disembunyikan saat serialisasi
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    // Tipe data otomatis dikonversi
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'otp_expires_at'    => 'datetime',
+        'password_reset_requested_at' => 'datetime',
+        'password'          => 'hashed',
+    ];
 }

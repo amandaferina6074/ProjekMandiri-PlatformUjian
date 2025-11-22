@@ -8,14 +8,14 @@ use Illuminate\Validation\Rule;
 
 class ProfileUpdateRequest extends FormRequest
 {
-    // Aturan validasi untuk update profil
+    /**
+  
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
     public function rules(): array
     {
         return [
-            // Nama wajib diisi, berupa teks, maksimal 255 karakter
             'name' => ['required', 'string', 'max:255'],
-
-            // Email wajib diisi, huruf kecil, format email, unik kecuali milik user sendiri
             'email' => [
                 'required',
                 'string',
