@@ -143,7 +143,7 @@
         <h2>Verifikasi Masuk</h2>
         <div class="desc">
             {{-- PERUBAHAN TEKS 1: Tidak menyebut email --}}
-            Demi keamanan akun, silakan masukkan <strong>6 digit kode OTP</strong> yang telah dihasilkan oleh sistem <strong>Waktu 5 Menit</strong>.
+            Demi keamanan akun, silakan masukkan <strong>6 digit kode OTP</strong> yang telah dihasilkan oleh sistem <strong>W</strong>.
         </div>
 
         {{-- Notifikasi Error --}}

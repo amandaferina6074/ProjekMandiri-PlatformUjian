@@ -14,7 +14,7 @@ Route::get('/verify-otp', [OtpController::class, 'create'])->name('otp.verify');
 Route::post('/verify-otp', [OtpController::class, 'store'])->name('otp.store');
 
 // Dashboard umum
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/', [UjianController::class, 'index'])->name('ujian.index');
     Route::get('/dashboard', [UjianController::class, 'index'])->name('dashboard');
 });
