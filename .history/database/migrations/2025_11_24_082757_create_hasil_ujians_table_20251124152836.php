@@ -1,1 +1,0 @@
-php artisan make:migration create_hasil_ujians_table
