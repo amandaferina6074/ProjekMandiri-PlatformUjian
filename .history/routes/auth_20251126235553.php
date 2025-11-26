@@ -27,6 +27,7 @@ Route::middleware('guest')->group(function () {
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
 
+    // --- BAGIAN INI YANG DIUBAH (LOGIKA MANUAL ADMIN) ---
     Route::post('forgot-password', function (Request $request) {
         // 1. Validasi Input
         $request->validate(['email' => 'required|email']);

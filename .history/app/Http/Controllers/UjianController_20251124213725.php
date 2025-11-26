@@ -1,4 +1,4 @@
-<?php
+<?php  
 
 namespace App\Http\Controllers;
 
@@ -13,31 +13,17 @@ use Illuminate\Support\Str;
 
 class UjianController extends Controller
 {
-    /**
-     * DASHBOARD UTAMA
-     * Menangani redirect berdasarkan Role: Admin, Dosen, atau Mahasiswa.
-     */
     public function index()
     {
         $user = Auth::user();
 
-        // 1. PERBAIKAN: CEK ADMIN DULU
-        // Jika yang login adalah Admin, lempar ke dashboard khusus Admin
-        if ($user->role === 'admin') {
-            return redirect()->route('admin.dashboard');
-        }
-
-        // 2. CEK DOSEN
         if ($user->role === 'dosen') {
             $ujians = Ujian::where('user_id', $user->id)
                            ->withCount('soals')
                            ->latest()
                            ->paginate(10);
             return view('ujian.index_dosen', compact('ujians'));
-        } 
-        
-        // 3. DEFAULT: MAHASISWA
-        else {
+        } else {
             $riwayatUjian = HasilUjian::with('ujian')
                                 ->where('user_id', $user->id)
                                 ->latest()
@@ -46,9 +32,6 @@ class UjianController extends Controller
         }
     }
 
-    /**
-     * Fitur Pencarian Ujian dengan Token (Untuk Mahasiswa)
-     */
     public function searchByToken(Request $request)
     {
         $request->validate([
@@ -74,15 +57,13 @@ class UjianController extends Controller
         return redirect()->route('pengerjaan.start', $ujian);
     }
 
-    // ==========================================
-    // MANAJEMEN UJIAN (CRUD)
-    // ==========================================
-
+    // FORM BUAT UJIAN
     public function create()
     {
         return view('ujian.create');
     }
 
+    // SIMPAN UJIAN BARU
     public function store(Request $request)
     {
         $request->validate([
@@ -103,6 +84,7 @@ class UjianController extends Controller
             ->with('status', 'Ujian berhasil dibuat! Token Akses: ' . $data['token']);
     }
 
+    // DETAIL UJIAN
     public function show(Ujian $ujian)
     {
         if (Auth::user()->role === 'dosen' && $ujian->user_id !== Auth::id()) {
@@ -120,6 +102,24 @@ class UjianController extends Controller
         return view('ujian.show', compact('ujian', 'hasilUjiansSelesai'));
     }
 
+    // HAPUS UJIAN
+    public function destroy(Ujian $ujian)
+    {
+        if ($ujian->user_id !== Auth::id()) abort(403);
+
+        foreach ($ujian->soals as $soal) {
+            if ($soal->image_path) {
+                Storage::disk('public')->delete($soal->image_path);
+            }
+        }
+
+        $ujian->delete();
+        return redirect()->route('ujian.index')->with('status', 'Ujian berhasil dihapus.');
+    }
+
+    // ===========================
+    // EDIT & UPDATE UJIAN
+    // ===========================
     public function edit(Ujian $ujian)
     {
         if ($ujian->user_id !== Auth::id()) abort(403);
@@ -144,24 +144,9 @@ class UjianController extends Controller
             ->with('status', 'Ujian berhasil diperbarui.');
     }
 
-    public function destroy(Ujian $ujian)
-    {
-        if ($ujian->user_id !== Auth::id()) abort(403);
-
-        foreach ($ujian->soals as $soal) {
-            if ($soal->image_path) {
-                Storage::disk('public')->delete($soal->image_path);
-            }
-        }
-
-        $ujian->delete();
-        return redirect()->route('ujian.index')->with('status', 'Ujian berhasil dihapus.');
-    }
-
-    // ==========================================
-    // MANAJEMEN SOAL (CRUD & VALIDASI FIX)
-    // ==========================================
-
+    // ===========================
+    // SOAL
+    // ===========================
     public function createSoal(Ujian $ujian)
     {
         if ($ujian->user_id !== Auth::id()) abort(403);
@@ -172,15 +157,15 @@ class UjianController extends Controller
     {
         if ($ujian->user_id !== Auth::id()) abort(403);
 
+        // Nilai validasi disesuaikan dengan nilai yang dikirim Blade: 'pg' atau 'esai'
         $request->validate([
-            // PERBAIKAN: Validasi tipe menggunakan 'pg' sesuai database
             'type' => 'required|in:pg,esai', 
             'pertanyaan' => 'required|string',
             'gambar_soal' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             
-            // PERBAIKAN: Validasi array pilihan hanya jika tipe adalah pg
+            // Aturan Validasi untuk Pilihan Ganda (PG)
             'pilihan' => 'required_if:type,pg|array|min:2', 
-            'pilihan.*' => 'nullable|string|max:255', // Boleh nullable agar tidak error validasi, nanti difilter
+            'pilihan.*' => 'required_if:type,pg|string|max:255',
             'jawaban_benar' => 'required_if:type,pg|integer|min:0', 
         ]);
 
@@ -193,19 +178,20 @@ class UjianController extends Controller
             $soal = $ujian->soals()->create([
                 'pertanyaan' => $request->pertanyaan,
                 'image_path' => $path,
+                // Nilai ini harusnya benar, tapi jika gagal, inilah sumber masalahnya.
                 'type' => $request->type, 
             ]);
 
             if ($request->type === 'pg') {
-                // PERBAIKAN: Filter array untuk membuang input kosong
-                $filteredPilihan = array_filter($request->pilihan, fn($p) => trim($p) !== '');
-
-                foreach ($filteredPilihan as $key => $teksPilihan) {
-                    $soal->pilihanJawabans()->create([
-                        'teks_pilihan' => $teksPilihan,
-                        // Pastikan casting ke integer agar perbandingan akurat
-                        'apakah_benar' => ((int)$key === (int)$request->jawaban_benar), 
-                    ]);
+                foreach ($request->pilihan as $key => $teksPilihan) {
+                    // Cek apakah teks pilihan tidak kosong (tambahan keamanan)
+                    if (trim($teksPilihan) !== '') {
+                        $soal->pilihanJawabans()->create([
+                            'teks_pilihan' => $teksPilihan,
+                            // Pastikan perbandingan menggunakan tipe data integer
+                            'apakah_benar' => ((int)$key === (int)$request->jawaban_benar), 
+                        ]);
+                    }
                 }
             }
         });
@@ -230,7 +216,7 @@ class UjianController extends Controller
             'pertanyaan' => 'required|string',
             'gambar_soal' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'pilihan' => 'required_if:type,pg|array|min:2|nullable',
-            'pilihan.*' => 'nullable|string',
+            'pilihan.*' => 'required_if:type,pg|string|nullable',
             'jawaban_benar' => 'required_if:type,pg|integer|min:0|nullable',
         ]);
 
@@ -253,17 +239,13 @@ class UjianController extends Controller
 
             $soal->save();
 
-            // Reset pilihan lama
             $soal->pilihanJawabans()->delete();
 
             if ($request->type === 'pg') {
-                // PERBAIKAN: Filter input kosong sebelum disimpan
-                $filteredPilihan = array_filter($request->pilihan, fn($p) => trim($p) !== '');
-
-                foreach ($filteredPilihan as $key => $teksPilihan) {
+                foreach ($request->pilihan as $key => $teksPilihan) {
                     $soal->pilihanJawabans()->create([
                         'teks_pilihan' => $teksPilihan,
-                        'apakah_benar' => ((int)$key === (int)$request->jawaban_benar),
+                        'apakah_benar' => ($key == $request->jawaban_benar),
                     ]);
                 }
             }
@@ -289,10 +271,6 @@ class UjianController extends Controller
         return redirect()->route('ujian.show', $ujian_id)
             ->with('status', 'Soal berhasil dihapus.');
     }
-
-    // ==========================================
-    // PENILAIAN & KOREKSI
-    // ==========================================
 
     public function showHasil(HasilUjian $hasilUjian)
     {

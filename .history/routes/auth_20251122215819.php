@@ -27,6 +27,7 @@ Route::middleware('guest')->group(function () {
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
 
+    // --- BAGIAN INI YANG DIUBAH (LOGIKA MANUAL ADMIN) ---
     Route::post('forgot-password', function (Request $request) {
         // 1. Validasi Input
         $request->validate(['email' => 'required|email']);
@@ -34,13 +35,14 @@ Route::middleware('guest')->group(function () {
         // 2. Cari User
         $user = User::where('email', $request->email)->first();
 
-        // 3. Jika user ketemu
+        // 3. Jika user ketemu, tandai di database (Notifikasi Admin)
         if ($user) {
             $user->forceFill([
                 'password_reset_requested_at' => now(),
             ])->save();
         }
 
+        // 4. Balikkan pesan sukses (Supaya user tenang)
         return back()->with('status', 'Permintaan terkirim! Admin akan segera mereset password Anda.');
     })->name('password.email');
    
