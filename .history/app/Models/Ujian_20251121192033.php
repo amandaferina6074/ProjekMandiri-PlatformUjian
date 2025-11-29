@@ -18,7 +18,7 @@ class Ujian extends Model
         'durasi_menit',
         'available_from',
         'available_to',
-        'token', 
+        'token', // Tambahkan ini
     ];
 
     // Cast tanggal

@@ -149,7 +149,7 @@ class PengerjaanController extends Controller
                     'jawaban_esai' => null,
                 ];
 
-                if ($soal->type == 'pg') {
+                if ($soal->type == 'pilihan_ganda') {
                     $data_to_save['pilihan_jawaban_id'] = $jawaban_data['pilihan_id'] ?? null;
                 } elseif ($soal->type == 'esai') {
                     $data_to_save['jawaban_esai'] = $jawaban_data['jawaban_esai'] ?? null;
@@ -175,7 +175,7 @@ class PengerjaanController extends Controller
         $jawaban_benar = 0;
 
         foreach ($ujian->soals as $soal) {
-            if ($soal->type == 'pg') {
+            if ($soal->type == 'pilihan_ganda') {
                 $total_soal_pg++;
                 
                 $jawaban_data = $request->jawaban[$soal->id] ?? null;

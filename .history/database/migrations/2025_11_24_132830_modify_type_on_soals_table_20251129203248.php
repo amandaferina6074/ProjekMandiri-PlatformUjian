@@ -38,5 +38,7 @@ return new class extends Migration
             FROM soals_old
         ");
 
+        // ❗ JANGAN DROP soals_old kalau tabel ini penting
+        // DB::statement("DROP TABLE soals_old");
     }
 };
