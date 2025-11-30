@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- STYLE TEMA UTAMA (DIAMBIL DARI REFERENCE) --- */
+    
         :root {
             --app-primary: #9D4E75;
             --app-primary-hover: #7a3b5a; 
@@ -170,7 +170,7 @@
                 </div>
             </div>
 
-            <h1 class="hero-title">Welcome to <br> SuksesUjian</h1>
+            <h1 class="hero-title">Platform Ujian Online <br> Modern & Aman</h1>
             
             <div class="row justify-content-center">
                 <div class="col-md-10 col-lg-8">
