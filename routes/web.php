@@ -9,24 +9,24 @@ use App\Http\Controllers\OtpController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Middleware\CheckRole;
 
-// OTP
+Route::get('/', function () {
+    return view('welcome');
+})->name('home');
+
 Route::get('/verify-otp', [OtpController::class, 'create'])->name('otp.verify');
 Route::post('/verify-otp', [OtpController::class, 'store'])->name('otp.store');
 
-// Dashboard umum
 Route::middleware(['auth'])->group(function () {
-    Route::get('/', [UjianController::class, 'index'])->name('ujian.index');
     Route::get('/dashboard', [UjianController::class, 'index'])->name('dashboard');
+    Route::get('/ujian-panel', [UjianController::class, 'index'])->name('ujian.index');
 });
 
-// Admin
 Route::middleware(['auth', CheckRole::class . ':admin'])
     ->prefix('admin')
     ->as('admin.')
     ->group(function () {
 
         Route::get('/dashboard', function () {
-
             $totalUsers = User::count();
             $totalDosen = User::where('role', 'dosen')->count();
             $totalMahasiswa = User::where('role', 'mahasiswa')->count();
@@ -47,7 +47,6 @@ Route::middleware(['auth', CheckRole::class . ':admin'])
         Route::post('/users/{id}/reset', [UserController::class, 'resetPassword'])->name('users.reset');
     });
 
-// Dosen
 Route::middleware(['auth', CheckRole::class . ':dosen'])->group(function () {
 
     Route::resource('ujian', UjianController::class)->except(['index']);
@@ -66,7 +65,6 @@ Route::middleware(['auth', CheckRole::class . ':dosen'])->group(function () {
     Route::delete('/soal/{soal}', [UjianController::class, 'destroySoal'])->name('soal.destroy');
 });
 
-// Mahasiswa
 Route::middleware(['auth', CheckRole::class . ':mahasiswa'])->group(function () {
 
     Route::post('/ujian/search', [UjianController::class, 'searchByToken'])->name('ujian.search');
@@ -80,7 +78,6 @@ Route::middleware(['auth', CheckRole::class . ':mahasiswa'])->group(function () 
     });
 });
 
-// Profile
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
